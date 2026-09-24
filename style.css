@@ -1,0 +1,341 @@
+/* =========================
+   ROOT
+========================= */
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
+    --success: #10b981;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+}
+
+
+/* =========================
+   RESET
+========================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text-main);
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+header {
+    background: var(--primary);
+    color: white;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+header h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+}
+
+header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+
+/* =========================
+   SECTION
+========================= */
+
+section {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+
+/* =========================
+   STATISTIK
+========================= */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card h3 {
+    margin: 0 0 10px;
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 25px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+
+/* =========================
+   FORM CONTAINER
+========================= */
+
+.expense-form-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.expense-form-container h2,
+.table-container h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+
+/* =========================
+   FORM GRID
+========================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+
+/* =========================
+   FORM GROUP
+========================= */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-main);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 14px;
+    outline: none;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+button {
+    border: none;
+    border-radius: 7px;
+    padding: 11px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+
+/* =========================
+   TABLE
+========================= */
+
+.table-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #f1f5f9;
+}
+
+th,
+td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+td {
+    font-size: 14px;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+/* =========================
+   BADGE
+========================= */
+
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+
+/* =========================
+   ACTION BUTTON
+========================= */
+
+.action-btn {
+    padding: 7px 10px;
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+.btn-edit {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.btn-delete {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-edit:hover {
+    background: #bfdbfe;
+}
+
+.btn-delete:hover {
+    background: #fecaca;
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-muted);
+}
+
+
+/* =========================
+   RESPONSIVE HP
+========================= */
+
+@media (max-width: 768px) {
+    section {
+        width: 95%;
+    }
+
+    header {
+        padding: 25px 15px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .table-container {
+        padding: 15px;
+    }
+
+    table {
+        min-width: 650px;
+    }
+}
+.warning {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    background: #fee2e2;
+    border: 1px solid #ef4444;
+    border-radius: 10px;
+    color: #b91c1c;
+    font-weight: bold;
+    text-align: center;
+}

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <h1>CATATAN PENGELUARAN</h1>
+        <p>Kelola keuangan bulanan Anda</p>
+    </header>
+
+    <!-- STATISTIC SECTION -->
+    <section id="statistic-section">
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <h3>Pengeluaran Hari Ini</h3>
+                <p id="stat-today">Rp 0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Bulan Ini</h3>
+                <p id="stat-month">Rp 0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Sisa Anggaran</h3>
+                <p id="stat-remaining">Rp 1.500.000</p>
+            </div>
+
+        </div>
+        <div id="warning" class="warning">
+        ⚠️ Pengeluaran bulan ini sudah melebihi anggaran!
+    </div>
+    </section>
+
+    <!-- FORM SECTION -->
+    <section id="form-section">
+        <div class="expense-form-container">
+
+            <form id="expense-form">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="description">Deskripsi</label>
+                        <input
+                            type="text"
+                            id="description"
+                            placeholder="Makan siang"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Nominal (Rp)</label>
+                        <input
+                            type="number"
+                            id="amount"
+                            placeholder="50000"
+                            min="1"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Kategori</label>
+                        <select id="category" required>
+                            <option value="">Pilih kategori</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Makan">Makan</option>
+                            <option value="Belanja">Belanja</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Tanggal</label>
+                        <input
+                            type="date"
+                            id="date"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <button
+                            type="submit"
+                            class="btn-primary"
+                            id="btn-submit">
+                            Tambah
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn-secondary"
+                            id="btn-cancel">
+                            Batal
+                        </button>
+                    </div>
+
+                </div>
+
+                <input
+                    type="hidden"
+                    id="expense-id">
+
+            </form>
+
+        </div>
+    </section>
+
+    <!-- TABLE SECTION -->
+    <section id="table-section">
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Deskripsi</th>
+                        <th>Kategori</th>
+                        <th>Nominal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody id="expense-list">
+
+                    <tr>
+                        <td
+                            colspan="5"
+                            class="empty-state">
+                            Memuat data...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </section>
+
+    <!-- FIREBASE -->
+    <script type="module">
+
+        // IMPORT FIREBASE
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            onSnapshot,
+            deleteDoc,
+            doc,
+            updateDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+        // KONFIGURASI FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrWXcMX7MEHUTaa2sQ43CN2aK3AikvsBI",
+            authDomain: "latihan-azhar.firebaseapp.com",
+            projectId: "latihan-azhar",
+            storageBucket: "latihan-azhar.firebasestorage.app",
+            messagingSenderId: "976386663502",
+            appId: "1:976386663502:web:e6edf89939b29101380f1f"
+        };
+
+
+        // INISIALISASI FIREBASE
+        const app = initializeApp(firebaseConfig);
+
+        const db = getFirestore(app);
+
+        const expensesCollection =
+            collection(db, "expenses");
+
+
+        // ELEMENT HTML
+        const expenseList =
+            document.getElementById("expense-list");
+
+        const expenseForm =
+            document.getElementById("expense-form");
+
+        const descriptionInput =
+            document.getElementById("description");
+
+        const amountInput =
+            document.getElementById("amount");
+
+        const categoryInput =
+            document.getElementById("category");
+
+        const dateInput =
+            document.getElementById("date");
+
+        const expenseIdInput =
+            document.getElementById("expense-id");
+
+        const statToday =
+            document.getElementById("stat-today");
+
+        const statMonth =
+            document.getElementById("stat-month");
+
+        const statRemaining =
+            document.getElementById("stat-remaining");
+
+        const submitButton =
+            document.getElementById("btn-submit");
+
+        const cancelButton =
+            document.getElementById("btn-cancel");
+
+
+        // ANGGARAN BULANAN
+        const anggaranBulanan = 1500000;
+
+
+        // TANGGAL DEFAULT
+        dateInput.value =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+
+        // FORMAT RUPIAH
+        function formatRupiah(angka) {
+
+            return new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                minimumFractionDigits: 0
+            }).format(angka);
+
+        }
+
+
+        // AMBIL DATA FIRESTORE REALTIME
+        onSnapshot(
+            expensesCollection,
+
+            (snapshot) => {
+
+                expenseList.innerHTML = "";
+
+                let totalBulanIni = 0;
+
+                let pengeluaranHariIni = 0;
+
+
+                const today = new Date();
+
+                const tahunSekarang =
+                    today.getFullYear();
+
+                const bulanSekarang =
+                    today.getMonth();
+
+                const tanggalSekarang =
+                    today.getDate();
+
+
+                // JIKA BELUM ADA DATA
+                if (snapshot.empty) {
+
+                    expenseList.innerHTML = `
+                        <tr>
+                            <td
+                                colspan="5"
+                                class="empty-state">
+                                Belum ada data pengeluaran.
+                            </td>
+                        </tr>
+                    `;
+
+                }
+
+
+                // TAMPILKAN DATA
+                snapshot.forEach((item) => {
+
+                    const data =
+                        item.data();
+
+                    const id =
+                        item.id;
+
+                    const amount =
+                        Number(data.amount || 0);
+
+
+                    // HITUNG TOTAL BERDASARKAN TANGGAL
+                    const expenseDate =
+                        data.date || "";
+
+                    const dateParts =
+                        expenseDate.split("-");
+
+
+                    if (dateParts.length === 3) {
+
+                        const tahun =
+                            Number(dateParts[0]);
+
+                        const bulan =
+                            Number(dateParts[1]) - 1;
+
+                        const tanggal =
+                            Number(dateParts[2]);
+
+
+                        // TOTAL BULAN INI
+                        if (
+                            tahun === tahunSekarang &&
+                            bulan === bulanSekarang
+                        ) {
+
+                            totalBulanIni += amount;
+
+                        }
+
+
+                        // PENGELUARAN HARI INI
+                        if (
+                            tahun === tahunSekarang &&
+                            bulan === bulanSekarang &&
+                            tanggal === tanggalSekarang
+                        ) {
+
+                            pengeluaranHariIni += amount;
+
+                        }
+
+                    }
+
+
+                    // BUAT BARIS TABEL
+                    const row =
+                        document.createElement("tr");
+
+
+                    row.innerHTML = `
+                        <td>
+                            ${data.date || "-"}
+                        </td>
+
+                        <td>
+                            ${data.description || "-"}
+                        </td>
+
+                        <td>
+                            <span class="badge">
+                                ${data.category || "-"}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${formatRupiah(amount)}
+                        </td>
+
+                        <td>
+
+                            <button
+                                class="action-btn btn-edit"
+                                data-id="${id}">
+                                Edit
+                            </button>
+
+                            <button
+                                class="action-btn btn-delete"
+                                data-id="${id}">
+                                Hapus
+                            </button>
+
+                        </td>
+                    `;
+
+
+                    expenseList.appendChild(row);
+
+                });
+
+
+                // HITUNG SISA ANGGARAN
+                const sisaAnggaran =
+                    anggaranBulanan -
+                    totalBulanIni;
+
+
+                // UPDATE STATISTIK
+                statToday.textContent =
+                    formatRupiah(
+                        pengeluaranHariIni
+                    );
+
+                statMonth.textContent =
+                    formatRupiah(
+                        totalBulanIni
+                    );
+
+                statRemaining.textContent =
+                    formatRupiah(
+                        sisaAnggaran
+                    );
+                    
+
+
+                // TOMBOL EDIT
+                document
+                    .querySelectorAll(".btn-edit")
+                    .forEach((button) => {
+
+                        button.addEventListener(
+                            "click",
+                            () => {
+
+                                const id =
+                                    button.dataset.id;
+
+                                const data =
+                                    snapshot.docs
+                                    .find(
+                                        item =>
+                                            item.id === id
+                                    )
+                                    .data();
+
+
+                                descriptionInput.value =
+                                    data.description || "";
+
+                                amountInput.value =
+                                    data.amount || "";
+
+                                categoryInput.value =
+                                    data.category || "";
+
+                                dateInput.value =
+                                    data.date || "";
+
+                                expenseIdInput.value =
+                                    id;
+
+
+                                submitButton.textContent =
+                                    "Update";
+
+                            }
+                        );
+
+                    });
+
+
+                // TOMBOL HAPUS
+                document
+                    .querySelectorAll(".btn-delete")
+                    .forEach((button) => {
+
+                        button.addEventListener(
+                            "click",
+                            async () => {
+
+                                const id =
+                                    button.dataset.id;
+
+
+                                if (
+                                    !confirm(
+                                        "Hapus data ini?"
+                                    )
+                                ) {
+                                    return;
+                                }
+
+
+                                try {
+
+                                    await deleteDoc(
+                                        doc(
+                                            db,
+                                            "expenses",
+                                            id
+                                        )
+                                    );
+
+                                    console.log(
+                                        "Data berhasil dihapus."
+                                    );
+
+                                } catch (error) {
+
+                                    console.error(
+                                        "Gagal menghapus:",
+                                        error
+                                    );
+
+                                    alert(
+                                        "Gagal menghapus data: " +
+                                        error.message
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    });
+
+            },
+
+
+            // ERROR FIRESTORE
+            (error) => {
+
+                console.error(
+                    "ERROR FIRESTORE:",
+                    error
+                );
+
+
+                expenseList.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="5"
+                            class="empty-state">
+                            Gagal mengambil data.
+                            Cek Console F12.
+                        </td>
+                    </tr>
+                `;
+
+            }
+
+        );
+
+
+        // TAMBAH / UPDATE DATA
+        expenseForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                const description =
+                    descriptionInput.value.trim();
+
+                const amount =
+                    Number(amountInput.value);
+
+                const category =
+                    categoryInput.value;
+
+                const date =
+                    dateInput.value;
+
+                const editId =
+                    expenseIdInput.value;
+
+
+                // VALIDASI
+                if (
+                    !description ||
+                    !amount ||
+                    !category ||
+                    !date
+                ) {
+
+                    alert(
+                        "Semua data harus diisi."
+                    );
+
+                    return;
+
+                }
+
+
+                try {
+
+                    // MODE EDIT
+                    if (editId) {
+
+                        await updateDoc(
+                            doc(
+                                db,
+                                "expenses",
+                                editId
+                            ),
+                            {
+                                description:
+                                    description,
+
+                                amount:
+                                    amount,
+
+                                category:
+                                    category,
+
+                                date:
+                                    date
+                            }
+                        );
+
+
+                        console.log(
+                            "Data berhasil diperbarui."
+                        );
+
+
+                    } else {
+
+                        // MODE TAMBAH
+                        const docRef =
+                            await addDoc(
+                                expensesCollection,
+                                {
+                                    description:
+                                        description,
+
+                                    amount:
+                                        amount,
+
+                                    category:
+                                        category,
+
+                                    date:
+                                        date,
+
+                                    createdAt:
+                                        serverTimestamp()
+                                }
+                            );
+
+
+                        console.log(
+                            "Data berhasil masuk Firebase!"
+                        );
+
+                        console.log(
+                            "ID Dokumen:",
+                            docRef.id
+                        );
+
+                    }
+
+
+                    // RESET FORM
+                    resetForm();
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Gagal menyimpan data:",
+                        error
+                    );
+
+                    alert(
+                        "Gagal menyimpan data: " +
+                        error.message
+                    );
+
+                }
+
+            }
+        );
+
+
+        // RESET FORM
+        function resetForm() {
+
+            expenseForm.reset();
+
+            expenseIdInput.value = "";
+
+            submitButton.textContent =
+                "Tambah";
+
+            dateInput.value =
+                new Date()
+                    .toISOString()
+                    .split("T")[0];
+
+        }
+
+
+        // TOMBOL BATAL
+        cancelButton.addEventListener(
+            "click",
+            () => {
+
+                resetForm();
+
+            }
+        );
+
+
+        // CEK KONEKSI
+        console.log(
+            "Firebase berhasil terhubung!"
+        );
+
+        console.log(
+            "Firestore berhasil diinisialisasi!"
+        );
+
+    </script>
+
+</body>
+</html>
